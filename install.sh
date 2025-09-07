@@ -1,29 +1,59 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "🔄 Updating system..."
-sudo apt update
-sudo apt install -y ca-certificates curl wget git lighttpd
+# --- CONFIG ---
+REPO_URL="${1:-https://github.com/<your-username>/rafac-radar.git}"
+WEB_ROOT="/var/www/html"
+APP_DIR="/opt/rafac-radar"
+SITE_PATH="$WEB_ROOT/rafac-radar"
 
+echo "🔄 Updating & installing packages..."
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl wget git lighttpd
+
+# ---- 1) Decoder + Map (readsb + tar1090) ----
 echo "📡 Installing readsb (decoder)..."
 sudo bash -c "$(wget -nv -O - https://raw.githubusercontent.com/wiedehopf/adsb-scripts/master/readsb-install.sh)"
 
-echo "🗺 Installing tar1090 (map)..."
+echo "🗺 Installing tar1090 (map UI)..."
 sudo bash -c "$(wget -nv -O - https://raw.githubusercontent.com/wiedehopf/tar1090/master/install.sh)"
-
-echo "⚙️ Applying RAFAC config..."
-sudo cp config/readsb.conf /etc/default/readsb
-sudo cp config/tar1090.conf /etc/default/tar1090
-sudo cp config/fr24feed.ini /etc/fr24feed.ini || true
-
-# Custom assets
-sudo cp assets/custom.css /usr/share/tar1090/html-legacy/custom.css
-sudo cp assets/rafac-logo.png /usr/share/tar1090/html-legacy/rafac-logo.png
-sudo cp assets/alert.wav /usr/share/tar1090/html-legacy/alert.wav
 
 echo "🚀 Enabling services..."
 sudo systemctl enable --now readsb tar1090
 
+# ---- 2) RAFAC Radar (your ATC-style UI) ----
+echo "📦 Installing rafac-radar from: $REPO_URL"
+if [ -d "$APP_DIR/.git" ]; then
+  sudo git -C "$APP_DIR" pull --ff-only
+else
+  sudo rm -rf "$APP_DIR"
+  sudo git clone "$REPO_URL" "$APP_DIR"
+fi
+
+sudo rm -rf "$SITE_PATH"
+sudo ln -s "$APP_DIR" "$SITE_PATH"
+
+# ---- 3) Proxy /rafac-radar/data -> local dump1090/tar1090 data ----
+echo "🔀 Configuring lighttpd proxy..."
+SNIP='/etc/lighttpd/conf-available/99-rafac-radar-proxy.conf'
+sudo bash -c "cat > '$SNIP' <<'CONF'
+server.modules += ( "mod_proxy" )
+$HTTP["url"] =~ "^/rafac-radar/data/" {
+    proxy.server = ( "" => ( ( "host" => "127.0.0.1", "port" => 8080 ) ) )
+}
+CONF"
+sudo ln -sf "$SNIP" /etc/lighttpd/conf-enabled/99-rafac-radar-proxy.conf
+
+echo "🔁 Restarting web server..."
+sudo systemctl restart lighttpd
+
 IP=$(hostname -I | awk '{print $1}')
-echo "✅ RAFAC Radar installed!"
-echo "👉 Open: http://$IP/tar1090/"
+echo
+echo "✅ Install complete!"
+echo "👉 tar1090 map:     http://$IP/tar1090/"
+echo "👉 RAFAC radar UI: http://$IP/rafac-radar/"
+echo
+echo "⚙️  Next steps:"
+echo "   - Edit $APP_DIR/config.js"
+echo "     • HOME = your lat/lon"
+echo "     • DUMP1090_URL = '/rafac-radar/data/aircraft.json'"
