@@ -1,0 +1,13 @@
+/* 25 RADAX skin */
+:root { --radar-green:#69ff69; --grid:#1f3d1f; --mil:#00e5ff; }
+html,body{margin:0;height:100%;background:#000;color:var(--radar-green);font-family:ui-monospace,Menlo,Consolas,monospace;}
+#hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:8px 12px;background:linear-gradient(180deg,rgba(0,0,0,.95),rgba(0,0,0,.35));z-index:5;}
+.brand{font-size:22px;letter-spacing:.6px;text-shadow:0 0 6px var(--radar-green);}
+.brand .crest{margin-right:8px}
+.stats span{margin-left:16px}
+#radar{position:absolute;inset:0;background:radial-gradient(ellipse at center,#021 0%,#000 60%);}
+#legend{position:fixed;bottom:10px;left:10px;color:var(--radar-green);font-size:15px;background:rgba(0,0,0,.4);padding:8px 10px;border:1px solid #0a3;border-radius:4px;}
+#legend .blip{display:inline-block;width:12px;height:12px;margin-right:6px;border:1px solid var(--radar-green);}
+#legend .blip.civil{background:var(--radar-green)} .blip.mil{background:var(--mil)}
+#legend .trail{display:inline-block;width:40px;height:2px;background:var(--radar-green);opacity:.7;margin-right:6px}
+.label{position:absolute;color:var(--radar-green);background:rgba(0,20,0,.55);padding:2px 4px;border:1px solid #093;font-size:14px;pointer-events:none;text-shadow:0 0 6px var(--radar-green);white-space:pre;}

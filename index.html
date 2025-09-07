@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>25 RADAX LIVE RADAR</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div id="hud">
+    <div class="brand">
+      <span class="crest">✪</span> 25 RADAX LIVE RADAR
+      <span id="clock"></span>
+    </div>
+    <div class="stats">
+      <span id="acCount">ACFT: 0</span>
+      <span id="msgRate">MSG/s: -</span>
+      <span id="range">MAX RNG: -- km</span>
+      <span id="mode">MODE: RADAR</span>
+    </div>
+  </div>
+
+  <canvas id="radar"></canvas>
+
+  <div id="legend">
+    <div><span class="blip civil"></span> Civil</div>
+    <div><span class="blip mil"></span> Military</div>
+    <div><span class="trail"></span> Trail</div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="radar.js"></script>
+</body>
+</html>
